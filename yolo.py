@@ -211,13 +211,13 @@ def detect_video(yolo, video_path, output_path=""):
     yolo.close_session()
 
     def detect_img(yolo):
-    while True:
-        img = input('Input image filename:')
-        try:
-            image = Image.open(img)
-        except:
-            print('Open Error! Try again!')
-            continue
+        while True:
+            img = input('Input image filename:')
+            try:
+                image = Image.open(img)
+            except:
+                print('Open Error! Try again!')
+                continue
         else:
             r_image = yolo.detect_image(image)
             print(type(r_image))
