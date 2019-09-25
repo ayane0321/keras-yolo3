@@ -215,9 +215,11 @@ def detect_img(yolo):
         img = input('Input image filename:')
         try:
             with open(img,"r") as f:
-                line = f.readline()
-                dirname = os.path.dirname(line)
-                image = Image.open(dirname)
+                lines = f.readlines()
+                # dirname = os.path.dirname(line)
+                for line in lines:
+                    print(line)
+                    image = Image.open(line)
         except:
             print('Open Error! Try again!')
             continue
