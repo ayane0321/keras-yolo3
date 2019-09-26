@@ -5,6 +5,8 @@ Class definition of YOLO_v3 style detection model on image and video
 
 import colorsys
 import os
+import shutil
+import csv
 from timeit import default_timer as timer
 
 import numpy as np
@@ -99,7 +101,7 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
-    def detect_image(self, image):
+    def detect_image(self, image, line,basename):
         start = timer()
 
         if self.model_image_size != (None, None):
@@ -139,12 +141,31 @@ class YOLO(object):
             draw = ImageDraw.Draw(image)
             label_size = draw.textsize(label, font)
 
+
             top, left, bottom, right = box
             top = max(0, np.floor(top + 0.5).astype('int32'))
             left = max(0, np.floor(left + 0.5).astype('int32'))
             bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
             right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
             print(label, (left, top), (right, bottom))
+            
+            #判定結果をcsvに書き込み
+            #split = basename.split('.')
+
+            #with open('result/' + split[0] + '.csv','w') as f:
+                #writer = csv.writer(f)
+                #writer.writerow(label,left,top,right,bottom)
+
+            #labelがpersonだったらpersonフォルダに分類するコード
+            
+            split = label.split() 
+            #labelはperson 0.99みたいな形　personと0.99を分離
+            print(split[0])
+            if split[0] == 'person':
+                print('find')
+                shutil.copy(line,'person/')　
+                #フォルダの移動shutil.copy(元のパス, 移動させたいパス)
+
 
             if top - label_size[1] >= 0:
                 text_origin = np.array([left, top - label_size[1]])
@@ -162,6 +183,7 @@ class YOLO(object):
             draw.text(text_origin, label, fill=(0, 0, 0), font=font)
             del draw
 
+       
         end = timer()
         print(end - start)
         return image
@@ -210,25 +232,30 @@ def detect_video(yolo, video_path, output_path=""):
             break
     yolo.close_session()
 
+#https://qiita.com/yoyoyo_/items/10d550b03b4b9c175d9c
 def detect_img(yolo):
     while True:
         img = input('Input image filename:')
-        try:
-            with open(img,"r") as f:
-                lines = f.readlines()
-                # dirname = os.path.dirname(line)
-                for line in lines:
-                    print(line)
+        with open(img,"r") as f:
+            lines = f.readlines()
+            for line in lines:
+                line = line.rstrip('\n')
+                #テキストファイルから一行ずつ読んだ文字は最後にスペース
+                print(line)
+                try:
                     image = Image.open(line)
-        except:
-            print('Open Error! Try again!')
-            continue
-        else:
-            r_image = yolo.detect_image(image)
-            print(type(r_image))
-            import cv2
-            cv2.imwrite("out.jpg", np.asarray(r_image)[..., ::-1])
-            r_image.show()
+                except:
+                    print('Open Error! Try again!')
+                    continue
+                else:
+                    basename = os.path.basename(line)
+                    #パスの一番最後(data/dog.jpgのdog.jpgなど)を返す
+                    r_image = yolo.detect_image(image,line,basename)
+                    #labelの判定でline(元の画像のパス)が必要　返す
+                    print(type(r_image))
+                    import cv2
+                    cv2.imwrite('img_' + basename, np.asarray(r_image)[..., ::-1])
+                    #basenameの先頭にimg_をつけて判定後の画像を一枚ずつ出力する
     yolo.close_session()
 
 
