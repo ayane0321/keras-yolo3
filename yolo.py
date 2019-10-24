@@ -150,20 +150,20 @@ class YOLO(object):
             print(label, (left, top), (right, bottom))
             
             #判定結果をcsvに書き込み
-            #split = basename.split('.')
+            split = basename.split('.')
 
-            #with open('result/' + split[0] + '.csv','w') as f:
-                #writer = csv.writer(f)
-                #writer.writerow(label,left,top,right,bottom)
+            with open('result/' + split[0] + '.csv','w') as f:
+                writer = csv.writer(f)
+                writer.writerow(label,left,top,right,bottom)
 
             #labelがpersonだったらpersonフォルダに分類するコード
             
-            split = label.split() 
+            #split = label.split()
             #labelはperson 0.99みたいな形　personと0.99を分離
-            print(split[0])
-            if split[0] == 'person':
-                print('find')
-                shutil.copy(line,'person/')
+            #print(split[0])
+            #if split[0] == 'person':
+                #print('find')
+                #shutil.copy(line,'person/')
                 #フォルダの移動shutil.copy(元のパス, 移動させたいパス)
 
 
