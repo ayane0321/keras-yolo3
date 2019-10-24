@@ -163,7 +163,7 @@ class YOLO(object):
             print(split[0])
             if split[0] == 'person':
                 print('find')
-                shutil.copy(line,'person/')　
+                shutil.copy(line,'person/')
                 #フォルダの移動shutil.copy(元のパス, 移動させたいパス)
 
 
