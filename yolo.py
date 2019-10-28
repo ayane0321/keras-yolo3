@@ -4,10 +4,10 @@ Class definition of YOLO_v3 style detection model on image and video
 """
 
 import colorsys
-import os
-import shutil
-import csv
+#import shutil
 from timeit import default_timer as timer
+import csv
+import cv2
 
 import numpy as np
 from keras import backend as K
@@ -101,7 +101,7 @@ class YOLO(object):
                 score_threshold=self.score, iou_threshold=self.iou)
         return boxes, scores, classes
 
-    def detect_image(self, image, line,basename):
+    def detect_image(self, image, basename):
         start = timer()
 
         if self.model_image_size != (None, None):
@@ -132,6 +132,12 @@ class YOLO(object):
                     size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
         thickness = (image.size[0] + image.size[1]) // 300
 
+        split = basename.split('.')
+
+        f = open('result/' + split[0] + '.csv', 'a')
+        fieldnames = ['label', 'probability', 'top', 'right', 'left', 'bottom']
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
         for i, c in reversed(list(enumerate(out_classes))):
             predicted_class = self.class_names[c]
             box = out_boxes[i]
@@ -148,16 +154,15 @@ class YOLO(object):
             bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
             right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
             print(label, (left, top), (right, bottom))
-            
-            #判定結果をcsvに書き込み
-            split = basename.split('.')
 
-            with open('result/' + split[0] + '.csv','w') as f:
-                writer = csv.writer(f)
-                writer.writerow(label,left,top,right,bottom)
+            #判定結果をcsvに書き込み
+            label_split = label.split(' ')
+
+            writer.writerow({'label':label_split[0],'probability':label_split[1], 'top':top, 'right':right, 'left':left, 'bottom':bottom})
+
 
             #labelがpersonだったらpersonフォルダに分類するコード
-            
+
             #split = label.split()
             #labelはperson 0.99みたいな形　personと0.99を分離
             #print(split[0])
@@ -187,6 +192,9 @@ class YOLO(object):
         end = timer()
         print(end - start)
         return image
+
+
+        f.close()
 
     def close_session(self):
         self.sess.close()
@@ -250,7 +258,7 @@ def detect_img(yolo):
                 else:
                     basename = os.path.basename(line)
                     #パスの一番最後(data/dog.jpgのdog.jpgなど)を返す
-                    r_image = yolo.detect_image(image,line,basename)
+                    r_image = yolo.detect_image(image,basename)
                     #labelの判定でline(元の画像のパス)が必要　返す
                     print(type(r_image))
                     import cv2
